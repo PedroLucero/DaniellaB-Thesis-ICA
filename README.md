@@ -1,16 +1,9 @@
 # daniella_tesis_app
 
-A new Flutter project.
+Daniella's app. This is pretty epic.
 
-## Getting Started
+## BUT WHAT IS IT ABOUT???
 
-This project is a starting point for a Flutter application.
+Basically a tracker for diabetes patients. This project has served as an absolutely excellent opportunity to learn flutter's kit. Plus it is a proof of concept for her thesis!
 
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+By no means is this finished right now...
