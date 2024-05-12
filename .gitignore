@@ -2,11 +2,11 @@
 # .dart_tool/
 # .idea/
 # android/
-# build/ 
+# build/
 # ios/
-# linux/
-# macos/
-# windows/
+linux/
+macos/
+windows/
 
 
 # Miscellaneous
