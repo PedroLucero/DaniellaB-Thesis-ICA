@@ -1,3 +1,5 @@
+import 'dart:collection';
+
 import 'package:daniella_tesis_app/test_screen.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
@@ -211,14 +213,24 @@ class GraphAppState extends ChangeNotifier {
     '2024-05-10 20:20:00',
     '2024-05-11 20:20:00',
     '2024-05-12 20:20:00',
-    '2024-05-13 20:20:00'
+    '2024-05-13 20:20:00',
   ];
 
   List<GlucoseDayRecord> glucoseRecords = [];
+  HashMap testG = HashMap<DateTime, GlucoseDayRecord>();
 
   GraphAppState() {
+    // This is an alternate way of saving datapoints. Instead of a List, use a hashmap
+    for (var i = 0; i < testDates.length; i++) {
+      GlucoseDayRecord currentPoint =
+          GlucoseDayRecord(testData[i], DateTime.parse(testDates[i]));
+      testG[currentPoint.date] = currentPoint;
+    }
+
     glucoseRecords = List<GlucoseDayRecord>.generate(testDates.length,
         (i) => GlucoseDayRecord(testData[i], DateTime.parse(testDates[i])));
+    // I'm worried about this down here :(
+    // glucoseRecords[7].addDataPoint(20, DateTime.parse('2024-05-13 20:20:00'));
   }
 }
 
@@ -271,7 +283,7 @@ class _GraphPageState extends State<GraphPage> {
     var theme = Theme.of(context);
     var titleStyle = theme.textTheme.displayMedium!.copyWith(
       color: theme.colorScheme.onPrimary,
-      fontSize: 45,
+      fontSize: 40,
       fontWeight: FontWeight.w600,
     );
 
