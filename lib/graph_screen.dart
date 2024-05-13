@@ -8,46 +8,18 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 
 class _BarChart extends StatelessWidget {
-  const _BarChart();
+  final BuildContext context;
+  final dates = GraphAppState().registeredDates;
+  final testData = GraphAppState().testData;
+
+  _BarChart(this.context);
 
   @override
   Widget build(BuildContext context) {
-    var testData = GraphAppState().testData;
-    var cols = GraphAppState().dates;
-
     return BarChart(
       BarChartData(
         barTouchData: barTouchData,
-        titlesData: FlTitlesData(
-          show: true,
-          bottomTitles: AxisTitles(
-            sideTitles: SideTitles(
-              showTitles: true,
-              reservedSize: 30,
-              getTitlesWidget: (value, meta) {
-                if (value.toInt() >= 0 && value.toInt() < cols.length) {
-                  return Text(cols[value.toInt()],
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
-                      ));
-                }
-                return Text('');
-              },
-            ),
-          ),
-          leftTitles: const AxisTitles(
-            sideTitles: SideTitles(
-                // Acá le ponemos la medida de grid luego ---------------------------------------------------
-                showTitles: false),
-          ),
-          topTitles: const AxisTitles(
-            sideTitles: SideTitles(showTitles: false),
-          ),
-          rightTitles: const AxisTitles(
-            sideTitles: SideTitles(showTitles: false),
-          ),
-        ),
+        titlesData: titlesData,
         borderData: borderData,
         barGroups: List.generate(
           testData.length,
@@ -71,12 +43,18 @@ class _BarChart extends StatelessWidget {
   BarTouchData get barTouchData => BarTouchData(
         enabled: true,
         touchCallback: (FlTouchEvent event, barTouchResponse) {
-          // AYOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO
           if (event.runtimeType == FlLongPressStart) {
-            print("Hey!");
+            // So as to not 'miss tap' into briefing page
+            // This mess returns index... somehow...
             var index = barTouchResponse!.spot?.touchedBarGroupIndex;
             if (index != null) {
-              print('Long press started on bar index: $index');
+              print("Selected index: $index");
+              // Check if we pressed a bar and not empty space
+              showModalBottomSheet(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return DayBriefing(dates: dates, index: index);
+                  });
             }
           }
         },
@@ -109,10 +87,13 @@ class _BarChart extends StatelessWidget {
       fontWeight: FontWeight.bold,
       fontSize: 14,
     );
-    List<String> cols = ['04/', '05', 'W', 'T', 'F', 'S', 'S'];
 
+    var tag = '';
+    if (value.toInt() >= 0 && value.toInt() < dates.length) {
+      tag = dates[value.toInt()];
+    }
     Widget text = Text(
-      cols[value.toInt()],
+      tag,
       style: style,
     );
 
@@ -123,7 +104,6 @@ class _BarChart extends StatelessWidget {
     );
   }
 
-  // LEGACY FUNCTION
   FlTitlesData get titlesData => FlTitlesData(
         show: true,
         bottomTitles: AxisTitles(
@@ -132,6 +112,17 @@ class _BarChart extends StatelessWidget {
             reservedSize: 30,
             getTitlesWidget: getTitles,
           ),
+        ),
+        leftTitles: const AxisTitles(
+          sideTitles: SideTitles(
+              // Acá le ponemos la medida de grid luego ---------------------------------------------------
+              showTitles: false),
+        ),
+        topTitles: const AxisTitles(
+          sideTitles: SideTitles(showTitles: false),
+        ),
+        rightTitles: const AxisTitles(
+          sideTitles: SideTitles(showTitles: false),
         ),
       );
 
@@ -164,9 +155,50 @@ class _BarChart extends StatelessWidget {
   }
 }
 
+class DayBriefing extends StatelessWidget {
+  const DayBriefing({
+    super.key,
+    required this.dates,
+    required this.index,
+  });
+
+  final List<String> dates;
+  final int index;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 400,
+      color: Colors.lightBlue,
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            const Text('Resumen del día'),
+            ElevatedButton(
+              child: Text('Fecha: ${dates[index]} (Cerrar)'),
+              onPressed: () => Navigator.pop(context),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class GraphAppState extends ChangeNotifier {
   List<double> testData = [8, 10, 23, 14, 23, 15, 14, 10, 16, 10];
-  List<String> dates = ['04', '05', '06', '07', '08', '09', '10', '11'];
+  List<String> registeredDates = [
+    '04',
+    '05',
+    '06',
+    '07',
+    '08',
+    '09',
+    '10',
+    '11'
+  ];
 
   void exampleplz() {
     // ----------------------------------------------------------------------------------
@@ -227,7 +259,7 @@ class _GraphPageState extends State<GraphPage> {
                 reverse: true,
                 child: SizedBox(
                   width: (samples + (samples / 20)) * 90,
-                  child: _BarChart(),
+                  child: _BarChart(context),
                 ),
               ),
             ),
