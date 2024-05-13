@@ -1,16 +1,10 @@
-import 'dart:math';
-
 import 'package:daniella_tesis_app/test_screen.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
-import 'package:flutter/widgets.dart';
 
 class _BarChart extends StatelessWidget {
   final BuildContext context;
-  final dates = GraphAppState().registeredDates;
-  final testData = GraphAppState().testData;
+  final glucoseRecord = GraphAppState().glucoseRecords;
 
   _BarChart(this.context);
 
@@ -22,22 +16,20 @@ class _BarChart extends StatelessWidget {
         titlesData: titlesData,
         borderData: borderData,
         barGroups: List.generate(
-          testData.length,
+          glucoseRecord.length,
           (i) => makeGroupData(
             i,
-            testData[i],
+            glucoseRecord[i].getAverageGlucose(),
           ),
         ),
         gridData: const FlGridData(show: false),
         alignment: BarChartAlignment.spaceAround,
-        maxY: testData.reduce(max) * 1.2,
+        maxY: glucoseRecord
+                .map((obj) => obj.getAverageGlucose())
+                .reduce((a, b) => a > b ? a : b) *
+            1.2,
       ),
     );
-  }
-
-  int example(a, b) {
-    print("Hi");
-    return 0;
   }
 
   BarTouchData get barTouchData => BarTouchData(
@@ -48,12 +40,13 @@ class _BarChart extends StatelessWidget {
             // This mess returns index... somehow...
             var index = barTouchResponse!.spot?.touchedBarGroupIndex;
             if (index != null) {
-              print("Selected index: $index");
               // Check if we pressed a bar and not empty space
               showModalBottomSheet(
                   context: context,
+                  isScrollControlled: true,
                   builder: (BuildContext context) {
-                    return DayBriefing(dates: dates, index: index);
+                    return DayBriefing(
+                        glucoseRecord: glucoseRecord, index: index);
                   });
             }
           }
@@ -80,7 +73,6 @@ class _BarChart extends StatelessWidget {
         ),
       );
 
-  // LEGACY FUNCTION
   Widget getTitles(double value, TitleMeta meta) {
     final style = TextStyle(
       // color: AppColors.contentColorBlue.darken(20),
@@ -89,8 +81,8 @@ class _BarChart extends StatelessWidget {
     );
 
     var tag = '';
-    if (value.toInt() >= 0 && value.toInt() < dates.length) {
-      tag = dates[value.toInt()];
+    if (value.toInt() >= 0 && value.toInt() < glucoseRecord.length) {
+      tag = glucoseRecord[value.toInt()].getDay();
     }
     Widget text = Text(
       tag,
@@ -158,29 +150,50 @@ class _BarChart extends StatelessWidget {
 class DayBriefing extends StatelessWidget {
   const DayBriefing({
     super.key,
-    required this.dates,
+    required this.glucoseRecord,
     required this.index,
   });
 
-  final List<String> dates;
+  final List<GlucoseDayRecord> glucoseRecord;
   final int index;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 400,
-      color: Colors.lightBlue,
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            const Text('Resumen del día'),
-            ElevatedButton(
-              child: Text('Fecha: ${dates[index]} (Cerrar)'),
+    // This whole section is essentially a NEW screen for the custom daily briefs
+
+    var date = glucoseRecord[index].getDate();
+
+    return FractionallySizedBox(
+      heightFactor: 0.89,
+      child: Scaffold(
+        appBar: AppBar(
+          leading: SizedBox.shrink(),
+          title: Text('Fecha: $date'),
+          actions: <Widget>[
+            IconButton(
+              icon: const Icon(Icons.close),
               onPressed: () => Navigator.pop(context),
             ),
           ],
+        ),
+        body: Container(
+          color: Colors.lightBlue,
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                const Text('Resumen del día: '),
+                Text(
+                    'Nivel de glucosa: ${glucoseRecord[index].getAverageGlucose()}'),
+                ElevatedButton(
+                  child:
+                      Text('Fecha: ${glucoseRecord[index].getDay()} (Cerrar)'),
+                  onPressed: () => Navigator.pop(context),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -188,21 +201,56 @@ class DayBriefing extends StatelessWidget {
 }
 
 class GraphAppState extends ChangeNotifier {
-  List<double> testData = [8, 10, 23, 14, 23, 15, 14, 10, 16, 10];
-  List<String> registeredDates = [
-    '04',
-    '05',
-    '06',
-    '07',
-    '08',
-    '09',
-    '10',
-    '11'
+  // These two are purely for testing purposes
+  List<double> testData = [8, 10, 23, 14, 23, 15, 14, 10];
+  List<String> testDates = [
+    '2024-05-06 20:20:00',
+    '2024-05-07 20:20:00',
+    '2024-05-08 20:20:00',
+    '2024-05-09 20:20:00',
+    '2024-05-10 20:20:00',
+    '2024-05-11 20:20:00',
+    '2024-05-12 20:20:00',
+    '2024-05-13 20:20:00'
   ];
 
-  void exampleplz() {
-    // ----------------------------------------------------------------------------------
-    print("Ou yea");
+  List<GlucoseDayRecord> glucoseRecords = [];
+
+  GraphAppState() {
+    glucoseRecords = List<GlucoseDayRecord>.generate(testDates.length,
+        (i) => GlucoseDayRecord(testData[i], DateTime.parse(testDates[i])));
+  }
+}
+
+// I'm concerned with ordering these values, perhaps a function in appstate to do so...
+class GlucoseDayRecord {
+  late DateTime date;
+  List<double> dataPoints = [];
+  // Used to separate distinct dataPoints within DayBriefing
+  List<DateTime> hoursMinutes = [];
+
+  GlucoseDayRecord(double firstGlucoseInput, DateTime inDate) {
+    date = DateTime(inDate.year, inDate.month, inDate.day);
+    hoursMinutes.add(DateTime(date.hour, date.minute));
+    dataPoints.add(firstGlucoseInput);
+  }
+
+  void addDataPoint(double glucoseValue, DateTime date) {
+    dataPoints.add(glucoseValue);
+    hoursMinutes.add(DateTime(date.hour, date.minute));
+  }
+
+  double getAverageGlucose() {
+    var sum = dataPoints.reduce((a, b) => a + b);
+    return sum / dataPoints.length;
+  }
+
+  String getDay() {
+    return date.day.toString();
+  }
+
+  String getDate() {
+    return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
   }
 }
 
@@ -218,7 +266,7 @@ class _GraphPageState extends State<GraphPage> {
 
   @override
   Widget build(BuildContext context) {
-    var samples = GraphAppState().testData.length;
+    var samples = GraphAppState().glucoseRecords.length;
     var appTitle = "Seguimiento:";
     var theme = Theme.of(context);
     var titleStyle = theme.textTheme.displayMedium!.copyWith(
@@ -248,13 +296,12 @@ class _GraphPageState extends State<GraphPage> {
                 fontWeight: FontWeight.w700,
               ),
             ),
+            // The code held within this SizedBox is sacred. IT WORKS in holding the graph how I wanted
+            // it's tedious to change tho.
             SizedBox(
-              height: 300,
+              height: 300, // Height is cool for changing btw
               width: MediaQuery.of(context).size.width,
               child: SingleChildScrollView(
-                // aspectRatio: 1.6,
-                // height: 200,
-                // width: 300,
                 scrollDirection: Axis.horizontal,
                 reverse: true,
                 child: SizedBox(
@@ -263,11 +310,21 @@ class _GraphPageState extends State<GraphPage> {
                 ),
               ),
             ),
-            ElevatedButton(
-              onPressed: () {
-                print("Boton jajas");
-              },
-              child: Text("Esto funciona :')"),
+            Expanded(
+              child: Align(
+                alignment: Alignment.center,
+                child: ElevatedButton(
+                  onPressed: () {
+                    print(
+                        "Boton jajas ${DateTime.now()}"); // --------------------------------------------
+                  },
+                  child: SizedBox(
+                    width: 250,
+                    height: 125,
+                    child: Center(child: Text("Agregar nivel de glucosa")),
+                  ),
+                ),
+              ),
             ),
           ]),
         ),
@@ -283,7 +340,19 @@ class DrawerDirectory extends StatelessWidget {
       child: ListView(
         children: [
           ListTile(
-              title: Text('Ejemplo 1'),
+              title: Text('Perfil'),
+              onTap: () => _navPush(context, TestPage())),
+          ListTile(
+              title: Text('Comentarios de tu doctor'),
+              onTap: () => _navPush(context, TestPage())),
+          ListTile(
+              title: Text('Agregar nivel de glucosa'),
+              onTap: () => _navPush(context, TestPage())),
+          ListTile(
+              title: Text('Calcular dosis'),
+              onTap: () => _navPush(context, TestPage())),
+          ListTile(
+              title: Text('Nivel de glucosa pendiente por dosis bolus'),
               onTap: () => _navPush(context, TestPage())),
         ],
       ),
