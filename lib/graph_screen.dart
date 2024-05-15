@@ -1,5 +1,6 @@
 import 'dart:collection';
 
+import 'package:daniella_tesis_app/input_screen.dart';
 import 'package:daniella_tesis_app/test_screen.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
@@ -327,8 +328,12 @@ class _GraphPageState extends State<GraphPage> {
                 alignment: Alignment.center,
                 child: ElevatedButton(
                   onPressed: () {
-                    print(
-                        "Boton jajas ${DateTime.now()}"); // --------------------------------------------
+                    print("Boton jajas ${DateTime.now()}");
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => InputPage(),
+                        ));
                   },
                   child: SizedBox(
                     width: 250,
