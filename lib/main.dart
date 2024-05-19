@@ -1,6 +1,8 @@
+import 'dart:collection';
+
+import 'package:daniella_tesis_app/login_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'graph_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -21,7 +23,7 @@ class MyApp extends StatelessWidget {
               seedColor: Color.fromARGB(169, 31, 140, 190)),
           useMaterial3: true,
         ),
-        home: const MyHomePage(),
+        home: const LoginPage(),
       ),
     );
   }
@@ -32,6 +34,39 @@ class MyAppState extends ChangeNotifier {
   TextEditingController _passwordController = TextEditingController();
   String _userEmail = '';
   String _password = '';
+
+  TextEditingController get userController => _userController;
+  TextEditingController get passwordController => _passwordController;
+
+  // These two are purely for testing purposes
+  List<double> testData = [8, 10, 23, 14, 23, 15, 14, 10];
+  List<String> testDates = [
+    '2024-05-06 20:20:00',
+    '2024-05-07 20:20:00',
+    '2024-05-08 20:20:00',
+    '2024-05-09 20:20:00',
+    '2024-05-10 20:20:00',
+    '2024-05-11 20:20:00',
+    '2024-05-12 20:20:00',
+    '2024-05-13 20:20:00',
+  ];
+
+  List<GlucoseDayRecord> glucoseRecords = [];
+  HashMap testG = HashMap<DateTime, GlucoseDayRecord>();
+
+  MyAppState() {
+    // This is an alternate way of saving datapoints. Instead of a List, use a hashmap
+    for (var i = 0; i < testDates.length; i++) {
+      GlucoseDayRecord currentPoint =
+          GlucoseDayRecord(testData[i], DateTime.parse(testDates[i]));
+      testG[currentPoint.date] = currentPoint;
+    }
+
+    glucoseRecords = List<GlucoseDayRecord>.generate(testDates.length,
+        (i) => GlucoseDayRecord(testData[i], DateTime.parse(testDates[i])));
+    // I'm worried about this down here :(
+    // glucoseRecords[7].addDataPoint(20, DateTime.parse('2024-05-13 20:20:00'));
+  }
 
   void userLogin() {
     _userEmail = _userController.text;
@@ -56,158 +91,34 @@ class MyAppState extends ChangeNotifier {
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key});
+// I'm concerned with ordering these values, perhaps a function in appstate to do so...
+class GlucoseDayRecord {
+  late DateTime date;
+  List<double> dataPoints = [];
+  // Used to separate distinct dataPoints within DayBriefing
+  List<DateTime> hoursMinutes = [];
 
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  var selectedIndex = 0;
-
-  @override
-  Widget build(BuildContext context) {
-    Widget page = WelcomePage();
-    var appTitle = "Login";
-    var theme = Theme.of(context);
-    var titleStyle = theme.textTheme.displayMedium!.copyWith(
-      color: theme.colorScheme.onPrimary,
-      fontSize: 45,
-      fontWeight: FontWeight.w600,
-    );
-
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        title: Text(
-          appTitle,
-          style: titleStyle,
-        ),
-      ),
-      body: Container(
-        color: Theme.of(context).colorScheme.primaryContainer,
-        child: page,
-      ),
-    );
+  GlucoseDayRecord(double firstGlucoseInput, DateTime inDate) {
+    date = DateTime(inDate.year, inDate.month, inDate.day);
+    hoursMinutes.add(DateTime(date.hour, date.minute));
+    dataPoints.add(firstGlucoseInput);
   }
-}
 
-class WelcomePage extends StatelessWidget {
-  const WelcomePage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    var appState = context.watch<
-        MyAppState>(); // Being a stateless Widget means we gotta manually check up
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(10.0),
-        child: Column(
-          children: [
-            Expanded(
-              child: Column(
-                children: [
-                  ImagenLogin(),
-                  InputCorreo(appState: appState),
-                  InputPassword(appState: appState),
-                  ElevatedButton(
-                    // Ingresar
-                    onPressed: () {
-                      appState.userLogin();
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => const GraphPage()),
-                      );
-                    },
-                    child: Text("Ingresar"),
-                  ),
-                ],
-              ),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                appState.googlePressed();
-              },
-              child: Text("Ya tengo una cuenta"),
-            ),
-            ElevatedButton.icon(
-              onPressed: () {
-                appState.googlePressed();
-              },
-              icon: Icon(Icons.g_mobiledata),
-              label: Text("Ingresa con Google"),
-            ),
-          ],
-        ),
-      ),
-    );
+  void addDataPoint(double glucoseValue, DateTime date) {
+    dataPoints.add(glucoseValue);
+    hoursMinutes.add(DateTime(date.hour, date.minute));
   }
-}
 
-class ImagenLogin extends StatelessWidget {
-  const ImagenLogin({
-    super.key,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: 300,
-      height: 100,
-      child: Image(image: AssetImage("images/ICAlogo.png")),
-    );
+  double getAverageGlucose() {
+    var sum = dataPoints.reduce((a, b) => a + b);
+    return sum / dataPoints.length;
   }
-}
 
-class InputCorreo extends StatelessWidget {
-  const InputCorreo({
-    super.key,
-    required this.appState,
-  });
-
-  final MyAppState appState;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(5.0, 10.0, 5.0, 3.0),
-      child: TextField(
-        controller: appState._userController,
-        decoration: InputDecoration(
-            filled: true,
-            fillColor: const Color.fromARGB(255, 239, 244, 249),
-            labelText: "Correo",
-            border: OutlineInputBorder(
-                borderRadius: BorderRadius.all(Radius.circular(20.0)))),
-      ),
-    );
+  String getDay() {
+    return date.day.toString();
   }
-}
 
-class InputPassword extends StatelessWidget {
-  const InputPassword({
-    super.key,
-    required this.appState,
-  });
-
-  final MyAppState appState;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(5.0, 3.0, 5.0, 5.0),
-      child: TextField(
-        controller: appState._passwordController,
-        decoration: InputDecoration(
-            filled: true,
-            fillColor: const Color.fromARGB(255, 239, 244, 249),
-            labelText: "Contraseña",
-            border: OutlineInputBorder(
-                borderRadius: BorderRadius.all(Radius.circular(20.0))),
-            suffixIcon: Icon(Icons.remove_red_eye)),
-      ),
-    );
+  String getDate() {
+    return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
   }
 }
