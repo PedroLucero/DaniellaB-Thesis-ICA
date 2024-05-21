@@ -45,8 +45,9 @@ class WelcomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var appState = context.watch<
-        MyAppState>(); // Being a stateless Widget means we gotta manually check up
+    // Being a stateless Widget means we gotta manually check up
+    // God bless this line of code.
+    var appState = context.watch<MyAppState>();
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(10.0),

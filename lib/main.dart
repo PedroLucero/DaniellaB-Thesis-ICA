@@ -1,4 +1,4 @@
-import 'dart:collection';
+import 'dart:math';
 
 import 'package:daniella_tesis_app/login_screen.dart';
 import 'package:flutter/material.dart';
@@ -51,19 +51,23 @@ class MyAppState extends ChangeNotifier {
     '2024-05-13 20:20:00',
   ];
 
-  List<GlucoseDayRecord> glucoseRecords = [];
-  HashMap testG = HashMap<DateTime, GlucoseDayRecord>();
+  List<GlucoseDayRecord> legGlucoseRecords = [];
+  List<DateTime> dates = [];
+  double currentTop = 0; // This is to keep the graph nice and inbounds
+  List<DateRecordPair> glucoseRecords = [];
 
   MyAppState() {
-    // This is an alternate way of saving datapoints. Instead of a List, use a hashmap
-    for (var i = 0; i < testDates.length; i++) {
-      GlucoseDayRecord currentPoint =
-          GlucoseDayRecord(testData[i], DateTime.parse(testDates[i]));
-      testG[currentPoint.date] = currentPoint;
-    }
+    // This is an alternate way of saving datapoints. Instead of a List<a> and List<b>, use a List<pairs>
+    currentTop = testData.reduce(max);
 
-    glucoseRecords = List<GlucoseDayRecord>.generate(testDates.length,
-        (i) => GlucoseDayRecord(testData[i], DateTime.parse(testDates[i])));
+    glucoseRecords = List<DateRecordPair>.generate(
+        testDates.length,
+        (i) => DateRecordPair(
+            DateTime.parse(testDates[i]),
+            GlucoseDayRecord(
+              testData[i],
+              DateTime.parse(testDates[i]),
+            )));
     // I'm worried about this down here :(
     // glucoseRecords[7].addDataPoint(20, DateTime.parse('2024-05-13 20:20:00'));
   }
@@ -89,9 +93,33 @@ class MyAppState extends ChangeNotifier {
     _passwordController.dispose();
     super.dispose();
   }
+
+  bool isSameDate(DateTime date1, DateTime date2) {
+    return date1.year == date2.year &&
+        date1.month == date2.month &&
+        date1.day == date2.day;
+  }
+
+  void newGlucoseR(double? glucoseVal, DateTime date) {
+    for (int i = 0; i < glucoseRecords.length; i++) {
+      if (isSameDate(date, glucoseRecords[i].date)) {
+        glucoseRecords[i].record.addDataPoint(glucoseVal!, date);
+        currentTop =
+            max(glucoseRecords[i].record.getAverageGlucose(), currentTop);
+        notifyListeners();
+        return;
+      }
+    }
+    glucoseRecords
+        .add(DateRecordPair(date, GlucoseDayRecord(glucoseVal!, date)));
+
+    currentTop = max(glucoseVal, currentTop);
+    glucoseRecords
+        .sort((a, b) => a.date.compareTo(b.date)); // Orders dates ascendingly
+    notifyListeners();
+  }
 }
 
-// I'm concerned with ordering these values, perhaps a function in appstate to do so...
 class GlucoseDayRecord {
   late DateTime date;
   List<double> dataPoints = [];
@@ -106,6 +134,9 @@ class GlucoseDayRecord {
 
   void addDataPoint(double glucoseValue, DateTime date) {
     dataPoints.add(glucoseValue);
+    if (date.hour == 0 && date.minute == 0 && date.millisecond == 0) {
+      return;
+    }
     hoursMinutes.add(DateTime(date.hour, date.minute));
   }
 
@@ -117,8 +148,11 @@ class GlucoseDayRecord {
   String getDay() {
     return date.day.toString();
   }
+}
 
-  String getDate() {
-    return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
-  }
+class DateRecordPair {
+  DateTime date;
+  GlucoseDayRecord record;
+
+  DateRecordPair(this.date, this.record);
 }

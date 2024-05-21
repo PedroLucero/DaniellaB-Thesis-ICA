@@ -1,18 +1,23 @@
-import 'dart:collection';
-
 import 'package:daniella_tesis_app/input_screen.dart';
+import 'package:daniella_tesis_app/main.dart';
 import 'package:daniella_tesis_app/test_screen.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 
 class _BarChart extends StatelessWidget {
   final BuildContext context;
-  final glucoseRecord = GraphAppState().glucoseRecords;
+  final MyAppState
+      appstate; // SOMEHOW this line of code spares me from using Consumer<AppState>()
+  // THE POWER OF LISTENING BABYYY
 
-  _BarChart(this.context);
+  _BarChart(this.context, this.appstate);
 
   @override
   Widget build(BuildContext context) {
+    var glucoseRecord = appstate.glucoseRecords;
+
     return BarChart(
       BarChartData(
         barTouchData: barTouchData,
@@ -22,15 +27,12 @@ class _BarChart extends StatelessWidget {
           glucoseRecord.length,
           (i) => makeGroupData(
             i,
-            glucoseRecord[i].getAverageGlucose(),
+            glucoseRecord[i].record.getAverageGlucose(),
           ),
         ),
         gridData: const FlGridData(show: false),
         alignment: BarChartAlignment.spaceAround,
-        maxY: glucoseRecord
-                .map((obj) => obj.getAverageGlucose())
-                .reduce((a, b) => a > b ? a : b) *
-            1.2,
+        maxY: appstate.currentTop * 1.2,
       ),
     );
   }
@@ -38,6 +40,8 @@ class _BarChart extends StatelessWidget {
   BarTouchData get barTouchData => BarTouchData(
         enabled: true,
         touchCallback: (FlTouchEvent event, barTouchResponse) {
+          var glucoseRecord = appstate.glucoseRecords;
+
           if (event.runtimeType == FlLongPressStart) {
             // So as to not 'miss tap' into briefing page
             // This mess returns index... somehow...
@@ -77,6 +81,7 @@ class _BarChart extends StatelessWidget {
       );
 
   Widget getTitles(double value, TitleMeta meta) {
+    var glucoseRecord = appstate.glucoseRecords;
     final style = TextStyle(
       // color: AppColors.contentColorBlue.darken(20),
       fontWeight: FontWeight.bold,
@@ -85,7 +90,7 @@ class _BarChart extends StatelessWidget {
 
     var tag = '';
     if (value.toInt() >= 0 && value.toInt() < glucoseRecord.length) {
-      tag = glucoseRecord[value.toInt()].getDay();
+      tag = glucoseRecord[value.toInt()].record.getDay();
     }
     Widget text = Text(
       tag,
@@ -157,14 +162,14 @@ class DayBriefing extends StatelessWidget {
     required this.index,
   });
 
-  final List<GlucoseDayRecord> glucoseRecord;
+  final List<DateRecordPair> glucoseRecord;
   final int index;
 
   @override
   Widget build(BuildContext context) {
     // This whole section is essentially a NEW screen for the custom daily briefs
 
-    var date = glucoseRecord[index].getDate();
+    var date = DateFormat('yyyy-MM-dd').format(glucoseRecord[index].date);
 
     return FractionallySizedBox(
       heightFactor: 0.89,
@@ -179,91 +184,38 @@ class DayBriefing extends StatelessWidget {
             ),
           ],
         ),
-        body: Container(
-          color: Colors.lightBlue,
-          child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                const Text('Resumen del día: '),
-                Text(
-                    'Nivel de glucosa: ${glucoseRecord[index].getAverageGlucose()}'),
-                ElevatedButton(
-                  child:
-                      Text('Fecha: ${glucoseRecord[index].getDay()} (Cerrar)'),
-                  onPressed: () => Navigator.pop(context),
-                ),
-              ],
-            ),
-          ),
+        body: Consumer<MyAppState>(
+          builder: (context, appState, child) {
+            return SingleChildScrollView(
+              child: Column(
+                // Next OOB is getting the little logic I had down in that commented code into this generator
+                children: List<Widget>.generate(
+                    glucoseRecord[index].record.dataPoints.length,
+                    (i) =>
+                        Text("${glucoseRecord[index].record.dataPoints[i]}")),
+              ),
+            );
+          },
         ),
+        // body: Container(
+        //   color: Colors.lightBlue,
+        //   child: Center(
+        //     child: Column(
+        //       mainAxisAlignment: MainAxisAlignment.center,
+        //       children: <Widget>[
+        //         const Text('Resumen del día: '),
+        //         Text(
+        //             'Nivel de glucosa: ${glucoseRecord[index].record.getAverageGlucose()}'),
+        //         ElevatedButton(
+        //           child: Text('Fecha: ${glucoseRecord[index].date} (Cerrar)'),
+        //           onPressed: () => Navigator.pop(context),
+        //         ),
+        //       ],
+        //     ),
+        //   ),
+        // ),
       ),
     );
-  }
-}
-
-class GraphAppState extends ChangeNotifier {
-  // These two are purely for testing purposes
-  List<double> testData = [8, 10, 23, 14, 23, 15, 14, 10];
-  List<String> testDates = [
-    '2024-05-06 20:20:00',
-    '2024-05-07 20:20:00',
-    '2024-05-08 20:20:00',
-    '2024-05-09 20:20:00',
-    '2024-05-10 20:20:00',
-    '2024-05-11 20:20:00',
-    '2024-05-12 20:20:00',
-    '2024-05-13 20:20:00',
-  ];
-
-  List<GlucoseDayRecord> glucoseRecords = [];
-  HashMap testG = HashMap<DateTime, GlucoseDayRecord>();
-
-  GraphAppState() {
-    // This is an alternate way of saving datapoints. Instead of a List, use a hashmap
-    for (var i = 0; i < testDates.length; i++) {
-      GlucoseDayRecord currentPoint =
-          GlucoseDayRecord(testData[i], DateTime.parse(testDates[i]));
-      testG[currentPoint.date] = currentPoint;
-    }
-
-    glucoseRecords = List<GlucoseDayRecord>.generate(testDates.length,
-        (i) => GlucoseDayRecord(testData[i], DateTime.parse(testDates[i])));
-    // I'm worried about this down here :(
-    // glucoseRecords[7].addDataPoint(20, DateTime.parse('2024-05-13 20:20:00'));
-  }
-}
-
-// I'm concerned with ordering these values, perhaps a function in appstate to do so...
-class GlucoseDayRecord {
-  late DateTime date;
-  List<double> dataPoints = [];
-  // Used to separate distinct dataPoints within DayBriefing
-  List<DateTime> hoursMinutes = [];
-
-  GlucoseDayRecord(double firstGlucoseInput, DateTime inDate) {
-    date = DateTime(inDate.year, inDate.month, inDate.day);
-    hoursMinutes.add(DateTime(date.hour, date.minute));
-    dataPoints.add(firstGlucoseInput);
-  }
-
-  void addDataPoint(double glucoseValue, DateTime date) {
-    dataPoints.add(glucoseValue);
-    hoursMinutes.add(DateTime(date.hour, date.minute));
-  }
-
-  double getAverageGlucose() {
-    var sum = dataPoints.reduce((a, b) => a + b);
-    return sum / dataPoints.length;
-  }
-
-  String getDay() {
-    return date.day.toString();
-  }
-
-  String getDate() {
-    return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
   }
 }
 
@@ -279,7 +231,8 @@ class _GraphPageState extends State<GraphPage> {
 
   @override
   Widget build(BuildContext context) {
-    var samples = GraphAppState().glucoseRecords.length;
+    var appstate = context.watch<MyAppState>();
+    var samples = appstate.glucoseRecords.length;
     var appTitle = "Seguimiento:";
     var theme = Theme.of(context);
     var titleStyle = theme.textTheme.displayMedium!.copyWith(
@@ -319,10 +272,11 @@ class _GraphPageState extends State<GraphPage> {
                 reverse: true,
                 child: SizedBox(
                   width: (samples + (samples / 20)) * 90,
-                  child: _BarChart(context),
+                  child: _BarChart(context, appstate),
                 ),
               ),
             ),
+            // ),
             Expanded(
               child: Align(
                 alignment: Alignment.center,
@@ -364,7 +318,7 @@ class DrawerDirectory extends StatelessWidget {
               onTap: () => _navPush(context, TestPage())),
           ListTile(
               title: Text('Agregar nivel de glucosa'),
-              onTap: () => _navPush(context, TestPage())),
+              onTap: () => _navPush(context, InputPage())),
           ListTile(
               title: Text('Calcular dosis'),
               onTap: () => _navPush(context, TestPage())),

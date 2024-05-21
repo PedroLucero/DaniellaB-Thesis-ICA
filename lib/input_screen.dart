@@ -1,6 +1,8 @@
+import 'package:daniella_tesis_app/main.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 
 class InputPage extends StatefulWidget {
   const InputPage({super.key});
@@ -12,23 +14,20 @@ class InputPage extends StatefulWidget {
 class _InputPageState extends State<InputPage> {
   var selectedIndex = 0;
   TextEditingController dateinput = TextEditingController();
-  DateTime pickedDate = DateTime.now();
-
-  bool isSameDate(DateTime date1, DateTime date2) {
-    return date1.year == date2.year &&
-        date1.month == date2.month &&
-        date1.day == date2.day;
-  }
+  DateTime? pickedDate = DateTime.now();
+  TextEditingController glucoseVal = TextEditingController();
 
   @override
   void initState() {
     dateinput.text =
-        "Hoy: ${DateFormat('yyyy-MM-dd').format(pickedDate)}"; //set the initial value of text field
+        "Hoy: ${DateFormat('yyyy-MM-dd').format(pickedDate!)}"; //set the initial value of text field
+    glucoseVal.text = "20";
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
+    var appstate = context.watch<MyAppState>();
     var appTitle = "Ingresa datos";
     var theme = Theme.of(context);
     var titleStyle = theme.textTheme.displayMedium!.copyWith(
@@ -68,7 +67,7 @@ class _InputPageState extends State<InputPage> {
                 readOnly:
                     true, //set it true, so that user will not able to edit text
                 onTap: () async {
-                  DateTime? pickedDate = await showDatePicker(
+                  pickedDate = await showDatePicker(
                       context: context,
                       initialDate: DateTime.now(),
                       //DateTime.now() - not to allow to choose before today.
@@ -76,18 +75,12 @@ class _InputPageState extends State<InputPage> {
                       lastDate: lastDate);
 
                   if (pickedDate != null) {
-                    //pickedDate output format => 2021-03-10 00:00:00.000
-                    print(pickedDate);
                     String formattedDate =
-                        DateFormat('yyyy-MM-dd').format(pickedDate);
-                    //formatted date output using intl package =>  2021-03-16
-                    print(formattedDate);
-                    //you can implement different kind of Date Format here according to your requirement
+                        DateFormat('yyyy-MM-dd').format(pickedDate!);
 
                     setState(() {
-                      //set output date to TextField value.
                       dateinput.text = formattedDate;
-                      if (isSameDate(pickedDate, DateTime.now())) {
+                      if (appstate.isSameDate(pickedDate!, DateTime.now())) {
                         dateinput.text = "Hoy: $formattedDate";
                       }
                     });
@@ -100,6 +93,7 @@ class _InputPageState extends State<InputPage> {
             Padding(
               padding: EdgeInsets.all(10),
               child: TextField(
+                controller: glucoseVal,
                 decoration: InputDecoration(
                     icon: Icon(Icons.bloodtype_outlined),
                     labelText: "Valor de glucosa"),
@@ -115,7 +109,9 @@ class _InputPageState extends State<InputPage> {
             ),
             ElevatedButton(
               onPressed: () {
-                print("Boton jajas ${DateTime.now()}");
+                appstate.newGlucoseR(
+                    double.tryParse(glucoseVal.text), pickedDate!);
+                print("Boton jajas $pickedDate");
                 Navigator.pop(
                   context,
                 );
