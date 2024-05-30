@@ -3,13 +3,14 @@ import 'package:daniella_tesis_app/main.dart';
 import 'package:daniella_tesis_app/test_screen.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 class _BarChart extends StatelessWidget {
   final BuildContext context;
-  final MyAppState
-      appstate; // SOMEHOW this line of code spares me from using Consumer<AppState>()
+  final MyAppState appstate;
+  // SOMEHOW this line of code spares me from using Consumer<AppState>()
   // THE POWER OF LISTENING BABYYY
 
   _BarChart(this.context, this.appstate);
@@ -80,7 +81,7 @@ class _BarChart extends StatelessWidget {
         ),
       );
 
-  Widget getTitles(double value, TitleMeta meta) {
+  Widget getDateTitles(double value, TitleMeta meta) {
     var glucoseRecord = appstate.glucoseRecords;
     final style = TextStyle(
       // color: AppColors.contentColorBlue.darken(20),
@@ -110,19 +111,17 @@ class _BarChart extends StatelessWidget {
           sideTitles: SideTitles(
             showTitles: true,
             reservedSize: 30,
-            getTitlesWidget: getTitles,
+            getTitlesWidget: getDateTitles,
           ),
         ),
-        leftTitles: const AxisTitles(
-          sideTitles: SideTitles(
-              // Acá le ponemos la medida de grid luego ---------------------------------------------------
-              showTitles: false),
+        leftTitles: AxisTitles(
+          sideTitles: SideTitles(),
         ),
         topTitles: const AxisTitles(
-          sideTitles: SideTitles(showTitles: false),
+          sideTitles: SideTitles(),
         ),
         rightTitles: const AxisTitles(
-          sideTitles: SideTitles(showTitles: false),
+          sideTitles: SideTitles(),
         ),
       );
 
@@ -184,18 +183,34 @@ class DayBriefing extends StatelessWidget {
             ),
           ],
         ),
-        body: Consumer<MyAppState>(
-          builder: (context, appState, child) {
-            return SingleChildScrollView(
-              child: Column(
-                // Next OOB is getting the little logic I had down in that commented code into this generator
-                children: List<Widget>.generate(
-                    glucoseRecord[index].record.dataPoints.length,
-                    (i) =>
-                        Text("${glucoseRecord[index].record.dataPoints[i]}")),
-              ),
-            );
-          },
+        body: Container(
+          color: Color.fromARGB(255, 167, 218, 241),
+          child: Center(
+            child: Consumer<MyAppState>(
+              builder: (context, appState, child) {
+                return SingleChildScrollView(
+                  child: Column(
+                    children: List<Widget>.generate(
+                        glucoseRecord[index].record.dataPoints.length,
+                        (i) => Column(
+                              children: [
+                                Text("${glucoseRecord[index].date}"),
+                                Text(
+                                    "${glucoseRecord[index].record.dataPoints[i]}"),
+                                ElevatedButton(
+                                  child: Text('Cerrar'),
+                                  onPressed: () => Navigator.pop(context),
+                                ),
+                                SizedBox(
+                                  height: 50,
+                                ),
+                              ],
+                            )),
+                  ),
+                );
+              },
+            ),
+          ),
         ),
         // body: Container(
         //   color: Colors.lightBlue,
@@ -271,12 +286,13 @@ class _GraphPageState extends State<GraphPage> {
                 scrollDirection: Axis.horizontal,
                 reverse: true,
                 child: SizedBox(
-                  width: (samples + (samples / 20)) * 90,
-                  child: _BarChart(context, appstate),
+                  width: (samples + (samples / 10)) * 90,
+                  child: Padding(
+                      padding: EdgeInsets.fromLTRB(20, 0, 20, 0),
+                      child: _BarChart(context, appstate)),
                 ),
               ),
             ),
-            // ),
             Expanded(
               child: Align(
                 alignment: Alignment.center,
