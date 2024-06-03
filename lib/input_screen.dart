@@ -21,7 +21,7 @@ class _InputPageState extends State<InputPage> {
   void initState() {
     dateinput.text =
         "Hoy: ${DateFormat('yyyy-MM-dd').format(pickedDate!)}"; //set the initial value of text field
-    glucoseVal.text = "20";
+    glucoseVal.text = "95";
     super.initState();
   }
 
@@ -58,6 +58,7 @@ class _InputPageState extends State<InputPage> {
             ),
             Padding(
               padding: EdgeInsets.all(10),
+              // Input for dose date
               child: TextField(
                 controller: dateinput,
                 decoration: InputDecoration(

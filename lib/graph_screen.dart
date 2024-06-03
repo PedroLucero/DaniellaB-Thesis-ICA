@@ -1,5 +1,6 @@
 import 'package:daniella_tesis_app/input_screen.dart';
 import 'package:daniella_tesis_app/main.dart';
+import 'package:daniella_tesis_app/profile_screen.dart';
 import 'package:daniella_tesis_app/test_screen.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
@@ -168,7 +169,7 @@ class DayBriefing extends StatelessWidget {
   Widget build(BuildContext context) {
     // This whole section is essentially a NEW screen for the custom daily briefs
 
-    var date = DateFormat('yyyy-MM-dd').format(glucoseRecord[index].date);
+    var date = DateFormat('dd-MM-yyyy').format(glucoseRecord[index].date);
 
     return FractionallySizedBox(
       heightFactor: 0.89,
@@ -194,7 +195,8 @@ class DayBriefing extends StatelessWidget {
                         glucoseRecord[index].record.dataPoints.length,
                         (i) => Column(
                               children: [
-                                Text("${glucoseRecord[index].date}"),
+                                Text(
+                                    "${glucoseRecord[index].record.hoursMinutes[i]}"),
                                 Text(
                                     "${glucoseRecord[index].record.dataPoints[i]}"),
                                 ElevatedButton(
@@ -328,7 +330,7 @@ class DrawerDirectory extends StatelessWidget {
         children: [
           ListTile(
               title: Text('Perfil'),
-              onTap: () => _navPush(context, TestPage())),
+              onTap: () => _navPush(context, ProfilePage())),
           ListTile(
               title: Text('Comentarios de tu doctor'),
               onTap: () => _navPush(context, TestPage())),

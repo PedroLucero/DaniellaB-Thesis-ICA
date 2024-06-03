@@ -1,3 +1,4 @@
+import 'dart:ffi';
 import 'dart:math';
 
 import 'package:daniella_tesis_app/login_screen.dart';
@@ -30,6 +31,7 @@ class MyApp extends StatelessWidget {
 }
 
 class MyAppState extends ChangeNotifier {
+  // These shouldn't be here, rather in login_screen
   TextEditingController _userController = TextEditingController();
   TextEditingController _passwordController = TextEditingController();
   String _userEmail = '';
@@ -37,6 +39,10 @@ class MyAppState extends ChangeNotifier {
 
   TextEditingController get userController => _userController;
   TextEditingController get passwordController => _passwordController;
+
+  // User data
+  UserData user = UserData("Pedro Lucero", "pedro@lucero.com", 'Masculino',
+      DateTime(2001, 9, 1), "Dr. Doug Thor");
 
   // These two are purely for testing purposes
   List<double> testData = [8, 10, 23, 14, 23, 15, 14, 10];
@@ -68,8 +74,6 @@ class MyAppState extends ChangeNotifier {
               testData[i],
               DateTime.parse(testDates[i]),
             )));
-    // I'm worried about this down here :(
-    // glucoseRecords[7].addDataPoint(20, DateTime.parse('2024-05-13 20:20:00'));
   }
 
   void userLogin() {
@@ -100,6 +104,16 @@ class MyAppState extends ChangeNotifier {
         date1.day == date2.day;
   }
 
+  void updateUserData(String name, String email, String sex, DateTime birthDate,
+      String doctor) {
+    user.name = name;
+    user.email = email;
+    user.sex = sex;
+    user.birthDate = birthDate;
+    user.doctor = doctor;
+    notifyListeners();
+  }
+
   void newGlucoseR(double? glucoseVal, DateTime date) {
     for (int i = 0; i < glucoseRecords.length; i++) {
       if (isSameDate(date, glucoseRecords[i].date)) {
@@ -128,7 +142,7 @@ class GlucoseDayRecord {
 
   GlucoseDayRecord(double firstGlucoseInput, DateTime inDate) {
     date = DateTime(inDate.year, inDate.month, inDate.day);
-    hoursMinutes.add(DateTime(date.hour, date.minute));
+    hoursMinutes.add(DateTime(1, 1, 1, date.hour, date.minute));
     dataPoints.add(firstGlucoseInput);
   }
 
@@ -137,7 +151,7 @@ class GlucoseDayRecord {
     if (date.hour == 0 && date.minute == 0 && date.millisecond == 0) {
       return;
     }
-    hoursMinutes.add(DateTime(date.hour, date.minute));
+    hoursMinutes.add(DateTime(1, 1, 1, date.hour, date.minute));
   }
 
   double getAverageGlucose() {
@@ -155,4 +169,18 @@ class DateRecordPair {
   GlucoseDayRecord record;
 
   DateRecordPair(this.date, this.record);
+}
+
+class UserData {
+  String name;
+  String email;
+  String sex;
+  DateTime birthDate;
+  String doctor;
+
+  UserData(this.name, this.email, this.sex, this.birthDate, this.doctor);
+
+  String getBirthDate() {
+    return "${birthDate.day}-${birthDate.month}-${birthDate.year}";
+  }
 }
