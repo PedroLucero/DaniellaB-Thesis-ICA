@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
@@ -87,103 +86,91 @@ class _ProfilePageState extends State<ProfilePage> {
                 // tabla de datos
                 Padding(
                   padding: EdgeInsets.fromLTRB(40, 20, 40, 0),
-                  child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        border: Border(
-                          top: BorderSide(color: Colors.black, width: 2),
-                          bottom: BorderSide(color: Colors.black, width: 8),
-                          left: BorderSide(color: Colors.black, width: 2),
-                          right: BorderSide(color: Colors.black, width: 8),
-                        ),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
+                  child: PrettyNBbox(
                       child: Padding(
-                        padding: EdgeInsets.fromLTRB(20, 20, 20, 10),
-                        child: Column(
-                          children: <Widget>[
-                            // Nombre
-                            TextField(
-                              controller: userName,
-                              decoration: InputDecoration(
-                                  labelText: "Nombre",
-                                  suffixIcon: Icon(Icons.edit)),
-                            ),
-                            // Correo
-                            TextField(
-                              controller: userEmail,
-                              decoration: InputDecoration(
-                                  labelText: "Correo",
-                                  suffixIcon: Icon(Icons.edit)),
-                            ),
-                            // Fecha de nac.
-                            TextField(
-                              controller: userBdate,
-                              decoration: InputDecoration(
-                                  suffixIcon: Icon(Icons.edit),
-                                  labelText: "Fecha de nacimiento"),
-                              //set it true, so that user will not able to edit text
-                              readOnly: true,
-                              onTap: () async {
-                                pickedDate = await showDatePicker(
-                                    context: context,
-                                    initialDate: DateTime.now(),
-                                    firstDate: firstDate,
-                                    lastDate: lastDate);
-
-                                if (pickedDate != null) {
-                                  String formattedDate =
-                                      DateFormat('dd-MM-yyyy')
-                                          .format(pickedDate!);
-                                  userBdate.text = formattedDate;
-                                  print(userBdate.text);
-                                }
-                              },
-                            ),
-                            SizedBox(
-                              height: 11,
-                            ),
-                            // Sexo
-                            DropdownMenu<String>(
-                              expandedInsets: EdgeInsets.all(0),
-                              menuStyle: MenuStyle(),
-                              initialSelection: selectedSex,
-                              label: Text("Sexo"),
-                              onSelected: (String? value) {
-                                selectedSex = value!;
-                              },
-                              dropdownMenuEntries: sexOptions
-                                  .map<DropdownMenuEntry<String>>(
-                                      (String value) {
-                                return DropdownMenuEntry<String>(
-                                  value: value,
-                                  label: value,
-                                );
-                              }).toList(),
-                            ),
-                            // Doctor que lo atiende
-                            TextField(
-                              controller: userDoctor,
-                              decoration: InputDecoration(
-                                labelText: "Doctor que lo atiende",
-                              ),
-                            ),
-                            SizedBox(
-                              height: 10,
-                            ),
-                            ElevatedButton(
-                                onPressed: () {
-                                  appstate.updateUserData(
-                                      userName.text,
-                                      userEmail.text,
-                                      selectedSex,
-                                      pickedDate!,
-                                      userDoctor.text);
-                                },
-                                child: Text("Aceptar cambios"))
-                          ],
+                    padding: EdgeInsets.fromLTRB(20, 20, 20, 10),
+                    child: Column(
+                      children: <Widget>[
+                        // Nombre
+                        TextField(
+                          controller: userName,
+                          decoration: InputDecoration(
+                              labelText: "Nombre",
+                              suffixIcon: Icon(Icons.edit)),
                         ),
-                      )),
+                        // Correo
+                        TextField(
+                          controller: userEmail,
+                          decoration: InputDecoration(
+                              labelText: "Correo",
+                              suffixIcon: Icon(Icons.edit)),
+                        ),
+                        // Fecha de nac.
+                        TextField(
+                          controller: userBdate,
+                          decoration: InputDecoration(
+                              suffixIcon: Icon(Icons.edit),
+                              labelText: "Fecha de nacimiento"),
+                          //set it true, so that user will not able to edit text
+                          readOnly: true,
+                          onTap: () async {
+                            pickedDate = await showDatePicker(
+                                context: context,
+                                initialDate: DateTime.now(),
+                                firstDate: firstDate,
+                                lastDate: lastDate);
+
+                            if (pickedDate != null) {
+                              String formattedDate =
+                                  DateFormat('dd-MM-yyyy').format(pickedDate!);
+                              userBdate.text = formattedDate;
+                              print(userBdate.text);
+                            }
+                          },
+                        ),
+                        SizedBox(
+                          height: 11,
+                        ),
+                        // Sexo
+                        DropdownMenu<String>(
+                          expandedInsets: EdgeInsets.all(0),
+                          menuStyle: MenuStyle(),
+                          initialSelection: selectedSex,
+                          label: Text("Sexo"),
+                          onSelected: (String? value) {
+                            selectedSex = value!;
+                          },
+                          dropdownMenuEntries: sexOptions
+                              .map<DropdownMenuEntry<String>>((String value) {
+                            return DropdownMenuEntry<String>(
+                              value: value,
+                              label: value,
+                            );
+                          }).toList(),
+                        ),
+                        // Doctor que lo atiende
+                        TextField(
+                          controller: userDoctor,
+                          decoration: InputDecoration(
+                            labelText: "Doctor que lo atiende",
+                          ),
+                        ),
+                        SizedBox(
+                          height: 10,
+                        ),
+                        ElevatedButton(
+                            onPressed: () {
+                              appstate.updateUserData(
+                                  userName.text,
+                                  userEmail.text,
+                                  selectedSex,
+                                  pickedDate!,
+                                  userDoctor.text);
+                            },
+                            child: Text("Aceptar cambios"))
+                      ],
+                    ),
+                  )),
                 ),
               ],
             ),

@@ -1,8 +1,8 @@
-import 'dart:ffi';
 import 'dart:math';
 
 import 'package:daniella_tesis_app/login_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:provider/provider.dart';
 
 void main() {
@@ -45,7 +45,7 @@ class MyAppState extends ChangeNotifier {
       DateTime(2001, 9, 1), "Dr. Doug Thor");
 
   // These two are purely for testing purposes
-  List<double> testData = [8, 10, 23, 14, 23, 15, 14, 10];
+  List<double> testData = [98, 100, 123, 114, 123, 115, 114, 80];
   List<String> testDates = [
     '2024-05-06 20:20:00',
     '2024-05-07 20:20:00',
@@ -138,20 +138,25 @@ class GlucoseDayRecord {
   late DateTime date;
   List<double> dataPoints = [];
   // Used to separate distinct dataPoints within DayBriefing
-  List<DateTime> hoursMinutes = [];
+  List<(int, int)> hoursMinutes = [];
 
   GlucoseDayRecord(double firstGlucoseInput, DateTime inDate) {
     date = DateTime(inDate.year, inDate.month, inDate.day);
-    hoursMinutes.add(DateTime(1, 1, 1, date.hour, date.minute));
     dataPoints.add(firstGlucoseInput);
+    if (inDate.hour == 0 && inDate.minute == 0 && inDate.millisecond == 0) {
+      hoursMinutes.add((-1, -1));
+      return;
+    }
+    hoursMinutes.add((inDate.hour, inDate.minute));
   }
 
   void addDataPoint(double glucoseValue, DateTime date) {
     dataPoints.add(glucoseValue);
     if (date.hour == 0 && date.minute == 0 && date.millisecond == 0) {
+      hoursMinutes.add((-1, -1));
       return;
     }
-    hoursMinutes.add(DateTime(1, 1, 1, date.hour, date.minute));
+    hoursMinutes.add((date.hour, date.minute));
   }
 
   double getAverageGlucose() {
@@ -159,8 +164,16 @@ class GlucoseDayRecord {
     return sum / dataPoints.length;
   }
 
+  // Used for 'tagging' each bargraph point
   String getDay() {
     return date.day.toString();
+  }
+
+  String getHM(int index) {
+    if (hoursMinutes[index].$1 == -1 && hoursMinutes[index].$2 == -1) {
+      return "Registro número ${index + 1}";
+    }
+    return "Registro de las ${hoursMinutes[index].$1.toString().padLeft(2, '0')}:${hoursMinutes[index].$2.toString().padLeft(2, '0')}";
   }
 }
 
@@ -182,5 +195,32 @@ class UserData {
 
   String getBirthDate() {
     return "${birthDate.day}-${birthDate.month}-${birthDate.year}";
+  }
+}
+
+class PrettyNBbox extends StatelessWidget {
+  const PrettyNBbox({
+    super.key,
+    required this.child,
+  });
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      alignment: Alignment(-1, -1),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border(
+          top: BorderSide(color: Colors.black, width: 2),
+          bottom: BorderSide(color: Colors.black, width: 8),
+          left: BorderSide(color: Colors.black, width: 2),
+          right: BorderSide(color: Colors.black, width: 8),
+        ),
+      ),
+      child: child,
+    );
   }
 }

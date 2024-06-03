@@ -192,45 +192,35 @@ class DayBriefing extends StatelessWidget {
                 return SingleChildScrollView(
                   child: Column(
                     children: List<Widget>.generate(
-                        glucoseRecord[index].record.dataPoints.length,
-                        (i) => Column(
+                      glucoseRecord[index].record.dataPoints.length,
+                      (i) => Padding(
+                        padding: EdgeInsets.all(10),
+                        child: PrettyNBbox(
+                          child: Padding(
+                            padding: EdgeInsets.all(10),
+                            child: Column(
                               children: [
+                                Text(glucoseRecord[index].record.getHM(i)),
                                 Text(
-                                    "${glucoseRecord[index].record.hoursMinutes[i]}"),
-                                Text(
-                                    "${glucoseRecord[index].record.dataPoints[i]}"),
+                                    "Valor: ${glucoseRecord[index].record.dataPoints[i]}"),
+                                Text("Comentarios de tu doctor:"),
+                                Text(""),
                                 ElevatedButton(
                                   child: Text('Cerrar'),
                                   onPressed: () => Navigator.pop(context),
                                 ),
-                                SizedBox(
-                                  height: 50,
-                                ),
                               ],
-                            )),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
                 );
               },
             ),
           ),
         ),
-        // body: Container(
-        //   color: Colors.lightBlue,
-        //   child: Center(
-        //     child: Column(
-        //       mainAxisAlignment: MainAxisAlignment.center,
-        //       children: <Widget>[
-        //         const Text('Resumen del día: '),
-        //         Text(
-        //             'Nivel de glucosa: ${glucoseRecord[index].record.getAverageGlucose()}'),
-        //         ElevatedButton(
-        //           child: Text('Fecha: ${glucoseRecord[index].date} (Cerrar)'),
-        //           onPressed: () => Navigator.pop(context),
-        //         ),
-        //       ],
-        //     ),
-        //   ),
-        // ),
       ),
     );
   }
@@ -271,13 +261,19 @@ class _GraphPageState extends State<GraphPage> {
         color: Theme.of(context).colorScheme.primaryContainer,
         child: Center(
           child: Column(children: [
+            SizedBox(
+              height: 5,
+            ),
             Text(
               "Niveles de glucosa en sangre",
               style: theme.textTheme.displayMedium!.copyWith(
                 color: Colors.black,
-                fontSize: 25,
+                fontSize: 28,
                 fontWeight: FontWeight.w700,
               ),
+            ),
+            SizedBox(
+              height: 5,
             ),
             // The code held within this SizedBox is sacred. IT WORKS in holding the graph how I wanted
             // it's tedious to change tho.
@@ -290,8 +286,13 @@ class _GraphPageState extends State<GraphPage> {
                 child: SizedBox(
                   width: (samples + (samples / 10)) * 90,
                   child: Padding(
-                      padding: EdgeInsets.fromLTRB(20, 0, 20, 0),
-                      child: _BarChart(context, appstate)),
+                    padding: EdgeInsets.fromLTRB(20, 0, 20, 0),
+                    child: PrettyNBbox(
+                      child: Padding(
+                          padding: EdgeInsets.all(10),
+                          child: _BarChart(context, appstate)),
+                    ),
+                  ),
                 ),
               ),
             ),
