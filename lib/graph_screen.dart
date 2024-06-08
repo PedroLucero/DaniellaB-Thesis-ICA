@@ -200,8 +200,20 @@ class DayBriefing extends StatelessWidget {
                           child: Padding(
                             padding: EdgeInsets.all(10),
                             child: Column(
-                              children: [
-                                Text(glucoseRecord[index].record.getHM(i)),
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: <Widget>[
+                                Row(
+                                  children: <Widget>[
+                                    Text(glucoseRecord[index].record.getHM(i)),
+                                    ElevatedButton(
+                                      onPressed: () {
+                                        appState.deleteGlucoseR(
+                                            glucoseRecord[index].date, i);
+                                      },
+                                      child: Icon(Icons.close),
+                                    ),
+                                  ],
+                                ),
                                 Text(
                                     "Valor: ${glucoseRecord[index].record.dataPoints[i]}"),
                                 Text("Mood: "),

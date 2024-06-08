@@ -129,17 +129,26 @@ class MyAppState extends ChangeNotifier {
     // If not we add a new date
     glucoseRecords
         .add(DateRecordPair(date, GlucoseDayRecord(glucoseVal!, date)));
-        for (int i = 0; i < glucoseRecords.length; i++) {
-          print(glucoseRecords[i].date);
-        }
-        
 
+    // We set the top of the barchart dynamically
     currentTop = max(glucoseVal, currentTop);
     // Here we order dates... not a .reduce() but a .sort() instead
     // ... duh...
-    glucoseRecords
-        .sort((a, b) => a.date.compareTo(b.date));
+    glucoseRecords.sort((a, b) => a.date.compareTo(b.date));
     notifyListeners();
+  }
+
+  void deleteGlucoseR(DateTime date, int datapointIndex) {
+    for (int i = 0; i < glucoseRecords.length; i++) {
+      if (isSameDate(date, glucoseRecords[i].date)) {
+        // currentTop = max(glucoseRecords[i].record.getAverageGlucose(), currentTop);
+
+        glucoseRecords[i].record.dataPoints.removeAt(datapointIndex);
+        glucoseRecords[i].record.hoursMinutes.removeAt(datapointIndex);
+        notifyListeners();
+        return;
+      }
+    }
   }
 }
 
@@ -169,7 +178,11 @@ class GlucoseDayRecord {
   }
 
   double getAverageGlucose() {
+    if (dataPoints.isEmpty) {
+      return 0;
+    }
     var sum = dataPoints.reduce((a, b) => a + b);
+
     return sum / dataPoints.length;
   }
 
