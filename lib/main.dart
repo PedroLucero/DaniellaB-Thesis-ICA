@@ -41,8 +41,8 @@ class MyAppState extends ChangeNotifier {
   TextEditingController get passwordController => _passwordController;
 
   // User data
-  UserData user = UserData("Pedro Lucero", "pedro@lucero.com", 'Masculino',
-      DateTime(2001, 9, 1), "Dr. Doug Thor");
+  UserData user = UserData("Daniella Beluche", "daniellab@gmail.com",
+      'Femenino', DateTime(2001, 6, 23), "Dr. Patel");
 
   // These two are purely for testing purposes
   List<double> testData = [98, 100, 123, 114, 123, 115, 114, 80];
@@ -115,7 +115,9 @@ class MyAppState extends ChangeNotifier {
   }
 
   void newGlucoseR(double? glucoseVal, DateTime date) {
+    // Checking through all the records if the date is already in
     for (int i = 0; i < glucoseRecords.length; i++) {
+      // If yes we add into an existing date
       if (isSameDate(date, glucoseRecords[i].date)) {
         glucoseRecords[i].record.addDataPoint(glucoseVal!, date);
         currentTop =
@@ -124,12 +126,19 @@ class MyAppState extends ChangeNotifier {
         return;
       }
     }
+    // If not we add a new date
     glucoseRecords
         .add(DateRecordPair(date, GlucoseDayRecord(glucoseVal!, date)));
+        for (int i = 0; i < glucoseRecords.length; i++) {
+          print(glucoseRecords[i].date);
+        }
+        
 
     currentTop = max(glucoseVal, currentTop);
+    // Here we order dates... not a .reduce() but a .sort() instead
+    // ... duh...
     glucoseRecords
-        .sort((a, b) => a.date.compareTo(b.date)); // Orders dates ascendingly
+        .sort((a, b) => a.date.compareTo(b.date));
     notifyListeners();
   }
 }

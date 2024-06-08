@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:daniella_tesis_app/main.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -76,7 +74,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     alignment: Alignment(-0.5, -0.5),
                     child: CircleAvatar(
                       backgroundImage: NetworkImage(
-                          "https://imgs.search.brave.com/0WYdYszgIn0gEGRTWdCFZWd4es3vCk5sm3Q78eogx3U/rs:fit:860:0:0/g:ce/aHR0cHM6Ly9mcmVl/cG5naW1nLmNvbS90/aHVtYi9jYXRlZ29y/aWVzLzE3NzgucG5n"),
+                          "https://media.licdn.com/dms/image/D4E03AQEmVWXBhrHxZQ/profile-displayphoto-shrink_200_200/0/1709723711673?e=1723075200&v=beta&t=Rl4S6dXfe9iM8_aykxxy5WTtwdhfNrvZpEoiB_Bbe3c"),
                       radius: 70.0,
                       backgroundColor: Colors.white,
                     ),

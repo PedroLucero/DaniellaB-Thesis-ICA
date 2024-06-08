@@ -1,3 +1,4 @@
+import 'package:daniella_tesis_app/dose_screen.dart';
 import 'package:daniella_tesis_app/input_screen.dart';
 import 'package:daniella_tesis_app/main.dart';
 import 'package:daniella_tesis_app/profile_screen.dart';
@@ -203,6 +204,7 @@ class DayBriefing extends StatelessWidget {
                                 Text(glucoseRecord[index].record.getHM(i)),
                                 Text(
                                     "Valor: ${glucoseRecord[index].record.dataPoints[i]}"),
+                                Text("Mood: "),
                                 Text("Comentarios de tu doctor:"),
                                 Text(""),
                                 ElevatedButton(
@@ -284,7 +286,7 @@ class _GraphPageState extends State<GraphPage> {
                 scrollDirection: Axis.horizontal,
                 reverse: true,
                 child: SizedBox(
-                  width: (samples + (samples / 10)) * 90,
+                  width: (samples + (samples / 7)) * 90,
                   child: Padding(
                     padding: EdgeInsets.fromLTRB(20, 0, 20, 0),
                     child: PrettyNBbox(
@@ -340,7 +342,7 @@ class DrawerDirectory extends StatelessWidget {
               onTap: () => _navPush(context, InputPage())),
           ListTile(
               title: Text('Calcular dosis'),
-              onTap: () => _navPush(context, TestPage())),
+              onTap: () => _navPush(context, DosePage())),
           ListTile(
               title: Text('Nivel de glucosa pendiente por dosis bolus'),
               onTap: () => _navPush(context, TestPage())),

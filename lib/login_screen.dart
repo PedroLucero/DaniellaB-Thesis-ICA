@@ -78,7 +78,7 @@ class WelcomePage extends StatelessWidget {
               onPressed: () {
                 appState.googlePressed();
               },
-              child: Text("Ya tengo una cuenta"),
+              child: Text("Crear una cuenta"),
             ),
             ElevatedButton.icon(
               onPressed: () {
