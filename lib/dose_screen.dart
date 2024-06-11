@@ -1,3 +1,5 @@
+import 'dart:ffi';
+
 import 'package:daniella_tesis_app/main.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -11,10 +13,21 @@ class DosePage extends StatefulWidget {
 
 class _DosePageState extends State<DosePage> {
   var selectedIndex = 0;
+  TextEditingController carbsInput = TextEditingController();
+  TextEditingController ratioInput = TextEditingController();
+  TextEditingController resultingDose = TextEditingController();
+
+  @override
+  void initState() {
+    carbsInput.text = "100";
+    ratioInput.text = "10";
+    resultingDose.text = "1.00";
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
-    var appTitle = "Calcula tu dosis Bolus";
+    var appTitle = "Calcula tu dosis";
     var theme = Theme.of(context);
     var titleStyle = theme.textTheme.displayMedium!.copyWith(
       color: theme.colorScheme.onPrimary,
@@ -49,7 +62,7 @@ class _DosePageState extends State<DosePage> {
                     child: Column(
                       children: <Widget>[
                         TextField(
-                          // controller: glucoseVal,
+                          controller: carbsInput,
                           decoration: InputDecoration(
                             labelText: "Carbohidratos (gramos)",
                             suffixIcon: Icon(Icons.breakfast_dining),
@@ -62,7 +75,7 @@ class _DosePageState extends State<DosePage> {
                         ),
                         Text("÷"),
                         TextField(
-                          // controller: glucoseVal,
+                          controller: ratioInput,
                           decoration: InputDecoration(
                             labelText: "Razón insulina a carbohidratos",
                             suffixIcon: Icon(Icons.health_and_safety),
@@ -74,7 +87,18 @@ class _DosePageState extends State<DosePage> {
                           ],
                         ),
                         ElevatedButton(
-                          onPressed: null,
+                          onPressed: () {
+                            // This next check might be unecessary
+                            // Just gotta know if the info comes from DB side or user
+                            if (double.parse(ratioInput.text) == 0) {
+                              return;
+                            }
+                            var dose = double.parse(carbsInput.text) /
+                                double.parse(ratioInput.text);
+                            setState(() {
+                              resultingDose.text = dose.toStringAsFixed(2);
+                            });
+                          },
                           child: Text("Calcular"),
                         ),
                       ],
@@ -82,7 +106,7 @@ class _DosePageState extends State<DosePage> {
                   ),
                 ),
                 Text("="),
-                Text("[   ] Unidades de insulina bolus"),
+                Text("${resultingDose.text} Unidades de insulina bolus"),
               ],
             ),
           ),

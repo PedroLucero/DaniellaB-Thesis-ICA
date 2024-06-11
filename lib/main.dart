@@ -114,14 +114,23 @@ class MyAppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  double calculateNextTop() {
+    return glucoseRecords
+        .reduce((curr, next) =>
+            curr.record.getAverageGlucose() > next.record.getAverageGlucose()
+                ? curr
+                : next)
+        .record
+        .getAverageGlucose();
+  }
+
   void newGlucoseR(double? glucoseVal, DateTime date) {
     // Checking through all the records if the date is already in
     for (int i = 0; i < glucoseRecords.length; i++) {
       // If yes we add into an existing date
       if (isSameDate(date, glucoseRecords[i].date)) {
         glucoseRecords[i].record.addDataPoint(glucoseVal!, date);
-        currentTop =
-            max(glucoseRecords[i].record.getAverageGlucose(), currentTop);
+        currentTop = calculateNextTop();
         notifyListeners();
         return;
       }
@@ -145,6 +154,7 @@ class MyAppState extends ChangeNotifier {
 
         glucoseRecords[i].record.dataPoints.removeAt(datapointIndex);
         glucoseRecords[i].record.hoursMinutes.removeAt(datapointIndex);
+        currentTop = calculateNextTop();
         notifyListeners();
         return;
       }
