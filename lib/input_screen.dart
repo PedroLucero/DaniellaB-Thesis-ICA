@@ -1,6 +1,7 @@
 import 'package:daniella_tesis_app/main.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
@@ -16,6 +17,8 @@ class _InputPageState extends State<InputPage> {
   TextEditingController dateinput = TextEditingController();
   DateTime? pickedDate = DateTime.now();
   TextEditingController glucoseVal = TextEditingController();
+
+  int _selectedEmojiIndex = 0; // -1 means no emoji is selected
 
   @override
   void initState() {
@@ -35,6 +38,8 @@ class _InputPageState extends State<InputPage> {
       fontSize: 35,
       fontWeight: FontWeight.w600,
     );
+
+    var emojis = appstate.moodOptions;
 
     final firstDate = DateTime(DateTime.now().year - 50);
     final lastDate = DateTime.now();
@@ -61,7 +66,7 @@ class _InputPageState extends State<InputPage> {
                     image: AssetImage("images/ICAlogo.png"),
                   ),
                   SizedBox(
-                    height: 10,
+                    height: 20,
                   ),
                   PrettyNBbox(
                     child: Padding(
@@ -108,7 +113,68 @@ class _InputPageState extends State<InputPage> {
                             ),
                           ),
                           Padding(
-                            padding: EdgeInsets.all(10),
+                            padding: EdgeInsets.fromLTRB(10, 0, 10, 10),
+                            child: InputDecorator(
+                              decoration: InputDecoration(
+                                icon: Icon(Icons.mood),
+                                labelText:
+                                    "¿Cómo me siento al tomarme la medida?",
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                children: List.generate(emojis.length, (index) {
+                                  return GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        _selectedEmojiIndex = index;
+                                      });
+                                    },
+                                    child: Container(
+                                      margin: EdgeInsets.fromLTRB(0, 2, 10, 0),
+                                      padding: EdgeInsets.all(1.0),
+                                      decoration: BoxDecoration(
+                                        border: _selectedEmojiIndex == index
+                                            ? Border(
+                                                top: BorderSide(
+                                                    color: Theme.of(context)
+                                                        .colorScheme
+                                                        .primary,
+                                                    width: 2),
+                                                bottom: BorderSide(
+                                                    color: Theme.of(context)
+                                                        .colorScheme
+                                                        .primary,
+                                                    width: 4),
+                                                left: BorderSide(
+                                                    color: Theme.of(context)
+                                                        .colorScheme
+                                                        .primary,
+                                                    width: 2),
+                                                right: BorderSide(
+                                                    color: Theme.of(context)
+                                                        .colorScheme
+                                                        .primary,
+                                                    width: 4),
+                                              )
+                                            : Border.all(
+                                                color: Colors.transparent,
+                                                width: 2.0,
+                                              ),
+                                        borderRadius:
+                                            BorderRadius.circular(8.0),
+                                      ),
+                                      child: Text(
+                                        emojis[index],
+                                        style: TextStyle(fontSize: 30),
+                                      ),
+                                    ),
+                                  );
+                                }),
+                              ),
+                            ),
+                          ),
+                          Padding(
+                            padding: EdgeInsets.fromLTRB(10, 1, 10, 10),
                             child: TextField(
                               controller: glucoseVal,
                               decoration: InputDecoration(
@@ -129,7 +195,8 @@ class _InputPageState extends State<InputPage> {
                             onPressed: () {
                               appstate.newGlucoseR(
                                   double.tryParse(glucoseVal.text),
-                                  pickedDate!);
+                                  pickedDate!,
+                                  _selectedEmojiIndex);
                               print("Boton jajas $pickedDate");
                               Navigator.pop(
                                 context,

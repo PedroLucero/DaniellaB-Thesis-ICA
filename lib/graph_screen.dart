@@ -1,3 +1,4 @@
+import 'package:daniella_tesis_app/comments_screen.dart';
 import 'package:daniella_tesis_app/dose_screen.dart';
 import 'package:daniella_tesis_app/input_screen.dart';
 import 'package:daniella_tesis_app/main.dart';
@@ -216,7 +217,8 @@ class DayBriefing extends StatelessWidget {
                                 ),
                                 Text(
                                     "Valor: ${glucoseRecord[index].record.dataPoints[i]}"),
-                                Text("Mood: "),
+                                Text(
+                                    "Mood: ${glucoseRecord[index].record.moods[i]}"),
                                 Text("Comentarios de tu doctor:"),
                                 Text(""),
                                 ElevatedButton(
@@ -348,7 +350,7 @@ class DrawerDirectory extends StatelessWidget {
               onTap: () => _navPush(context, ProfilePage())),
           ListTile(
               title: Text('Comentarios de tu doctor'),
-              onTap: () => _navPush(context, TestPage())),
+              onTap: () => _navPush(context, CommentsPage())),
           ListTile(
               title: Text('Agregar nivel de glucosa'),
               onTap: () => _navPush(context, InputPage())),

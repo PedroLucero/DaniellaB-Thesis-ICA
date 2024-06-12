@@ -44,6 +44,15 @@ class MyAppState extends ChangeNotifier {
   UserData user = UserData("Daniella Beluche", "daniellab@gmail.com",
       'Femenino', DateTime(2001, 6, 23), "Dr. Patel");
 
+  // Mood options, just plain emojis
+  final List<String> moodOptions = ["😁", "😔", "😤", "🤒", "🏃‍♂"];
+
+  List<String> doctorComments = [
+    "Es importante que sigas monitoreando tu glucosa en sangre regularmente para asegurarnos de que tus niveles estén dentro del rango objetivo.",
+    "El seguimiento constante nos permite controlar la diabetes y prevenir cualquier problema en tu salud.",
+    "Gracias al telemonitoreo puedo llevar un control de tus características individuales y observar si necesitas venir en persona a verme."
+  ];
+
   // These two are purely for testing purposes
   List<double> testData = [98, 100, 123, 114, 123, 115, 114, 80];
   List<String> testDates = [
@@ -73,6 +82,7 @@ class MyAppState extends ChangeNotifier {
             GlucoseDayRecord(
               testData[i],
               DateTime.parse(testDates[i]),
+              -1,
             )));
   }
 
@@ -124,12 +134,12 @@ class MyAppState extends ChangeNotifier {
         .getAverageGlucose();
   }
 
-  void newGlucoseR(double? glucoseVal, DateTime date) {
+  void newGlucoseR(double? glucoseVal, DateTime date, int mood) {
     // Checking through all the records if the date is already in
     for (int i = 0; i < glucoseRecords.length; i++) {
       // If yes we add into an existing date
       if (isSameDate(date, glucoseRecords[i].date)) {
-        glucoseRecords[i].record.addDataPoint(glucoseVal!, date);
+        glucoseRecords[i].record.addDataPoint(glucoseVal!, date, mood);
         currentTop = calculateNextTop();
         notifyListeners();
         return;
@@ -137,7 +147,7 @@ class MyAppState extends ChangeNotifier {
     }
     // If not we add a new date
     glucoseRecords
-        .add(DateRecordPair(date, GlucoseDayRecord(glucoseVal!, date)));
+        .add(DateRecordPair(date, GlucoseDayRecord(glucoseVal!, date, mood)));
 
     // We set the top of the barchart dynamically
     currentTop = max(glucoseVal, currentTop);
@@ -154,6 +164,7 @@ class MyAppState extends ChangeNotifier {
 
         glucoseRecords[i].record.dataPoints.removeAt(datapointIndex);
         glucoseRecords[i].record.hoursMinutes.removeAt(datapointIndex);
+        glucoseRecords[i].record.moods.removeAt(datapointIndex);
         currentTop = calculateNextTop();
         notifyListeners();
         return;
@@ -167,10 +178,12 @@ class GlucoseDayRecord {
   List<double> dataPoints = [];
   // Used to separate distinct dataPoints within DayBriefing
   List<(int, int)> hoursMinutes = [];
+  List<String> moods = [];
 
-  GlucoseDayRecord(double firstGlucoseInput, DateTime inDate) {
+  GlucoseDayRecord(double firstGlucoseInput, DateTime inDate, int mood) {
     date = DateTime(inDate.year, inDate.month, inDate.day);
     dataPoints.add(firstGlucoseInput);
+    moods.add(mood >= 0 ? MyAppState().moodOptions[mood] : "");
     if (inDate.hour == 0 && inDate.minute == 0 && inDate.millisecond == 0) {
       hoursMinutes.add((-1, -1));
       return;
@@ -178,8 +191,9 @@ class GlucoseDayRecord {
     hoursMinutes.add((inDate.hour, inDate.minute));
   }
 
-  void addDataPoint(double glucoseValue, DateTime date) {
+  void addDataPoint(double glucoseValue, DateTime date, int mood) {
     dataPoints.add(glucoseValue);
+    moods.add(mood >= 0 ? MyAppState().moodOptions[mood] : "");
     if (date.hour == 0 && date.minute == 0 && date.millisecond == 0) {
       hoursMinutes.add((-1, -1));
       return;

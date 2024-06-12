@@ -1,8 +1,12 @@
-import 'dart:ffi';
-
 import 'package:daniella_tesis_app/main.dart';
+import 'package:daniella_tesis_app/notifications.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+
+// Apparently this goes at the very top...?
+final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+    FlutterLocalNotificationsPlugin();
 
 class DosePage extends StatefulWidget {
   const DosePage({super.key});
@@ -21,7 +25,10 @@ class _DosePageState extends State<DosePage> {
   void initState() {
     carbsInput.text = "100";
     ratioInput.text = "10";
-    resultingDose.text = "1.00";
+    resultingDose.text = "10.00";
+    TestNoti.initialize(
+        flutterLocalNotificationsPlugin: flutterLocalNotificationsPlugin,
+        initScheduled: true);
     super.initState();
   }
 
@@ -88,6 +95,12 @@ class _DosePageState extends State<DosePage> {
                         ),
                         ElevatedButton(
                           onPressed: () {
+                            TestNoti.showBigTextNotification(
+                              title: "Hey! Glucosa!",
+                              body: "Man, tu tiene que tomate tu glucosa io",
+                              fln: flutterLocalNotificationsPlugin,
+                            );
+
                             // This next check might be unecessary
                             // Just gotta know if the info comes from DB side or user
                             if (double.parse(ratioInput.text) == 0) {
@@ -101,6 +114,15 @@ class _DosePageState extends State<DosePage> {
                           },
                           child: Text("Calcular"),
                         ),
+                        // ElevatedButton(
+                        //     onPressed: () {
+                        //       TestNoti.scheduledNotification(
+                        //         title: "Schedule test",
+                        //         body: "YEEA",
+                        //         fln: flutterLocalNotificationsPlugin,
+                        //       );
+                        //     },
+                        //     child: Text("Test Async notification"))
                       ],
                     ),
                   ),

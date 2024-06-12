@@ -43,7 +43,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
     userName.text = appstate.user.name;
     userEmail.text = appstate.user.email;
-    const List<String> sexOptions = <String>['Femenino', 'Masculino', 'Otro'];
+    const List<String> sexOptions = <String>['Femenino', 'Masculino'];
     String selectedSex = appstate.user.sex;
     pickedDate = appstate.user.birthDate;
     userBdate.text = DateFormat('dd-MM-yyyy').format(pickedDate!);
@@ -74,7 +74,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     alignment: Alignment(-0.5, -0.5),
                     child: CircleAvatar(
                       backgroundImage: NetworkImage(
-                          "https://media.licdn.com/dms/image/D4E03AQEmVWXBhrHxZQ/profile-displayphoto-shrink_200_200/0/1709723711673?e=1723075200&v=beta&t=Rl4S6dXfe9iM8_aykxxy5WTtwdhfNrvZpEoiB_Bbe3c"),
+                          "https://media.licdn.com/dms/image/D4E03AQGxV2wAm4tWsg/profile-displayphoto-shrink_400_400/0/1718155889063?e=1723680000&v=beta&t=3NbjT1mry_n7sSgU2S0sL6TkQ8_9tyOQ5yUlY7GUOrU"),
                       radius: 70.0,
                       backgroundColor: Colors.white,
                     ),
